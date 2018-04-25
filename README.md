@@ -23,7 +23,7 @@ export VREP_SCENES_PATH=/example/again/V-REP_PRO_EDU_V3_4_0_Linux/scenes/
 These variables will be used as default if the respective argument is not provided.
 Next, simply install via pip:
 ```bash
-pip3 install --upgrade git+https://github.com/ycps/vrep-env.git#egg=vrep_env
+pip3 install --upgrade git+https://github.com/zhzhanp/vrep-env.git#egg=vrep_env
 ```
 
 ## Creating your own V-REP Gym environments
