@@ -29,10 +29,11 @@ import numpy as np
 import datetime     # used to generate unique filenames
 
 import gym
+from gym import wrappers
 from singleLeg_vrep_env import SingleLegVrepEnv
 
 from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Flatten, Input, merge
+from keras.layers import Dense, Activation, Flatten, Input, Concatenate
 from keras.optimizers import Adam
 
 from rl.agents import DQNAgent, DDPGAgent
@@ -44,9 +45,9 @@ from rl.callbacks import FileLogger, ModelIntervalCheckpoint
 
 ENV_NAME = 'singleLegVREPenv'
 
-LAYER_SIZE = 32
+LAYER_SIZE = 128
 NUM_HIDDEN_LAYERS = 3
-NUM_STEPS = 5000
+NUM_STEPS = 100000
 TRIAL_ID = datetime.datetime.now().strftime('%Y-%m-%d_%H%M%S')
 
 # Get the environment and extract the number of actions.
@@ -71,30 +72,6 @@ try:
                                                                      TRIAL_ID)
 
     env = gym.wrappers.Monitor(env, MONITOR_FILENAME, video_callable=False, force=True)
-# 
-#     Next, we build a very simple model.
-#     model = Sequential()
-#     model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
-#     model.add(Dense(16))
-#     model.add(Activation('relu'))
-#     model.add(Dense(16))
-#     model.add(Activation('relu'))
-#     model.add(Dense(16))
-#     model.add(Activation('relu'))
-#     model.add(Dense(nb_actions))
-#     model.add(Activation('linear'))
-#     print(model.summary())
-# 
-#     Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
-#     even the metrics!
-#     memory = SequentialMemory(limit=50000, window_length=1)
-#     policy = BoltzmannQPolicy()
-# 
-#     agent = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10,
-#                      target_model_update=1e-2, policy=policy)
-# 
-# 
-
 
 #     Next, we build a very simple actor model.
     actor = Sequential()
@@ -118,7 +95,7 @@ try:
     observation_input = Input(shape=(1,) + env.observation_space.shape, name='observation_input')
     flattened_observation = Flatten()(observation_input)
 
-    x = merge([action_input, flattened_observation], mode='concat')
+    x = Concatenate()([action_input, flattened_observation])
 
 #     Hidden layers
     for _ in range(NUM_HIDDEN_LAYERS):
@@ -134,7 +111,7 @@ try:
 #     Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 #     even the metrics!
     memory = SequentialMemory(limit=2*NUM_STEPS, window_length=1)
-    #random_process = OrnsteinUhlenbeckProcess(size=nb_actions, theta=.15, mu=0., sigma=.3)
+    random_process = OrnsteinUhlenbeckProcess(size=nb_actions, theta=.15, mu=0., sigma=.3)
     #random_process = OrnsteinUhlenbeckProcess(size=nb_actions, dt = env.tau, theta=1.0, mu=0.0, sigma=0.5, sigma_min=0.3, n_steps_annealing=NUM_STEPS)
 
     agent = DDPGAgent(nb_actions=nb_actions, 
@@ -145,7 +122,7 @@ try:
                       nb_steps_warmup_critic=100, 
                       nb_steps_warmup_actor=100,
                       gamma=.99, target_model_update=1e-3, 
-                      # random_process=random_process,
+                      random_process=random_process,
                       # delta_clip=1.0
                       )
 

@@ -115,7 +115,7 @@ class SingleLegVrepEnv(vrep_env.VrepEnv):
         print('SingleLegVrepEnv initialized')
 
 
-    def _make_observation(self):
+    def make_observation(self):
         self.observation_array = np.empty((3,3))
         self.joint_angles = np.empty((2,1))
         
@@ -131,26 +131,26 @@ class SingleLegVrepEnv(vrep_env.VrepEnv):
         self.observation = self.observation_array.flatten()
 
 
-    def _make_action(self, action):
+    def make_action(self, action):
         for index, joint_vel in enumerate(action):
             self.obj_set_velocity(self.servo_handles[index], joint_vel)
 
         # TODO: 02/23/19 - JEV - add clipping
 
 
-    def _step(self, action):
+    def step(self, action):
         # Clip xor Assert
         #actions = np.clip(actions,-self.joints_max_velocity, self.joints_max_velocity)
         #assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         
         # Actuate
-        self._make_action(action)
+        self.make_action(action)
         
         # Step
         self.step_simulation()
         
         # Observe
-        self._make_observation()
+        self.make_observation()
         
         # Reward
         # TODO: 02/23/19 - JEV - determine what this should be
@@ -168,7 +168,7 @@ class SingleLegVrepEnv(vrep_env.VrepEnv):
         
         return self.observation, reward, done, {}
 
-    def _reset(self):
+    def reset(self):
         """ Reset the simulation """
         # TODO: 02/23/19 - JEV - set up randomized initialization?
         if self.sim_running:
@@ -179,14 +179,14 @@ class SingleLegVrepEnv(vrep_env.VrepEnv):
         
         self.start_simulation()
         
-        self._make_observation()
+        self.make_observation()
         
         return self.observation
     
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         pass
     
-    def _seed(self, seed=None):
+    def seed(self, seed=None):
         return []
 
 
